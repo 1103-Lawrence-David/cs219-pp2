@@ -7,11 +7,11 @@
 using namespace std;
 void cleanUp(string&, string&, string&);
 
-void processInstruction(ifstream&, int&, uint32_t*, uint32_t*);
+void processInstruction(ifstream&, int&, uint32_t**, uint32_t**, int*);
 
-void arithOp(uint32_t*, string, string, string, string);
+void arithOp(uint32_t**, string, string, string, string);
 
-void conversion(uint32_t*, string, string, uint32_t&, uint32_t&);
+void conversion(uint32_t**, string, string, uint32_t&, uint32_t&);
 
 int findRegNum(string );
 
@@ -22,3 +22,5 @@ int findRegNum(string );
 //branchOp
 
 bool errorCheck(string, string, string, string, int);
+
+void opCount(int*, ifstream&);
