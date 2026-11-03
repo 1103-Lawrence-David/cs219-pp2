@@ -1,5 +1,6 @@
 #include "helpers.h"
 #define SIZE 200
+//I am so sorry about everything being in one file, i know its a pain to go through
 
 //This function process the raw data and calls the corresponding category of operation processing
 // It also calls the error checking to make sure its valid
@@ -67,9 +68,8 @@ void processInstruction(ifstream& fp, int& length, uint32_t** m, uint32_t** r, i
             
         }
         else{
-            cout << "Invalid operation error( fix later!)" << endl;
+            cout << "Invalid operation error" << endl;
         }
-        cout << opArr[length] << endl; //debugging
     
         operation = "NULL";
         opCount = 0;
@@ -83,6 +83,7 @@ void processInstruction(ifstream& fp, int& length, uint32_t** m, uint32_t** r, i
 
 }
 
+//This handles the logic for properly displaying output depending on which operation and if it triggered errors
 void display(uint32_t** r, uint32_t** m, string operation, string operand1, string operand2, string operand3, int flagZ, bool err, bool isBranch){
     uint32_t temp;
     cout << operation  << " ||||| " << operand1;
@@ -90,8 +91,9 @@ void display(uint32_t** r, uint32_t** m, string operation, string operand1, stri
             cout << " ||||| " << operand2;
         }
         if(operand3 != " ||||| " && operand3 != ""){
-           cout << " ||||| " << operand3 << endl;
+           cout << " ||||| " << operand3;
         }
+        cout << endl;
         if(operation == "CMP"){
             cout << "N= n/a, Z = " << flagZ << " C= n/a, v=n/a" << endl;
         }
@@ -103,12 +105,14 @@ void display(uint32_t** r, uint32_t** m, string operation, string operand1, stri
         }
         cout << endl << "Memory Array:" << endl;
         
-        for(int i = 0; i < 5; i++){ //maybe update this??
+        for(int i = 0; i < 5; i++){
             cout << "0x" << *m[i] << ",  ";
         }
     }
     cout << endl << endl;
 }
+
+//this cleans up and properly seperates the operand variables
 void cleanUp(string& op1, string& op2, string& op3){
     string temp1 = "", temp2 = "", temp3 = "", rework;
     int splitCount = 1;
@@ -142,6 +146,7 @@ void cleanUp(string& op1, string& op2, string& op3){
     op3 = temp3;
 }
 
+//Helper function to handle inserting into register and memory arrays
 int findRegNum(string s){
     if(s == "R0"){
         return 0;
@@ -167,7 +172,6 @@ int findRegNum(string s){
     if(s == "R7"){
         return 7;
     }
-    //Ox100 = 0, Ox104 = 0, Ox108 = 0, Ox10c = 0, Ox110 = 0;
     if(s == "0x100"){
         return 0;
     }
@@ -185,6 +189,8 @@ int findRegNum(string s){
     }
     return 8;
 }
+
+//converts operands values into their proper values, then stores them to temp so as not to lose any data
 void conversion(uint32_t** rArr, string op2, string op3, uint32_t& temp1, uint32_t& temp2){
     int regNum; 
     string manip;
@@ -205,7 +211,6 @@ void conversion(uint32_t** rArr, string op2, string op3, uint32_t& temp1, uint32
         else{
             temp1 = stoi(manip,nullptr,10);
         }
-        //cout << "Stoi: " << temp1 << endl; //debug
     }
     else if(!op2.empty()){
         manip = op2;
@@ -234,7 +239,6 @@ void conversion(uint32_t** rArr, string op2, string op3, uint32_t& temp1, uint32
         else{
             temp2 = stoi(manip,nullptr,10);
         }
-       // cout << "Stoi: " << temp2 << endl; //debug
     }
     else{
         manip = op3;
@@ -249,16 +253,14 @@ void conversion(uint32_t** rArr, string op2, string op3, uint32_t& temp1, uint32
 
 }
 
-//add, sub, cmp, mov
+//This function takes in ADD, MOV, SUB and CMP operations and performs them accordingly.
 void arithOp(uint32_t** rArr, string operation, string op1, string op2, string op3, int& z, bool& err){
     uint32_t temp1, temp2;
     int regNum = 0;
     
     if(operation == "ADD"){
-        cout << "THE OP2 IS:   " << op2 << endl; //debug
         regNum = findRegNum(op1);
         conversion(rArr, op2, op3, temp1, temp2);
-        cout << op2 << endl;
         if(op2[0] == 'R'){
             *rArr[regNum] = (temp1+temp2);
         }
@@ -308,26 +310,46 @@ void arithOp(uint32_t** rArr, string operation, string op1, string op2, string o
     }
 }
 
+//This function takes AND, OR, and XOR, and performs those operations and stores in destination register.
 void bitwiseOp(uint32_t** r, string operation, string op1, string op2, string op3, bool& err){
     uint32_t temp1, temp2;
     int regNum = 0;
     if(operation == "AND"){
-        regNum = findRegNum(op1);
-        conversion(r, op2, op3, temp1, temp2);
-        *r[regNum] = (temp1 & temp2);
+        if(op2[0] == 'R'){
+            regNum = findRegNum(op1);
+            conversion(r, op2, op3, temp1, temp2);
+            *r[regNum] = (temp1 & temp2);
+        }
+        else{
+            err = false;
+            cout << "Error: Operand 2 can not be an immediate value." << endl;
+        }
     }
     if(operation == "XOR"){
-        regNum = findRegNum(op1);
-        conversion(r, op2, op3, temp1, temp2);
-        *r[regNum] = (temp1 ^ temp2);
+        if(op2[0] == 'R'){
+            regNum = findRegNum(op1);
+            conversion(r, op2, op3, temp1, temp2);
+            *r[regNum] = (temp1 ^ temp2);
+        }
+        else{
+            err = false;
+            cout << "Error: Operand 2 can not be an immediate value." << endl;
+        }
     }
     if(operation == "OR"){
-         regNum = findRegNum(op1);
-        conversion(r, op2, op3, temp1, temp2);
-        *r[regNum] = (temp1 | temp2);
+        if(op2[0] == 'R'){
+            regNum = findRegNum(op1);
+            conversion(r, op2, op3, temp1, temp2);
+            *r[regNum] = (temp1 | temp2);
+        }
+        else{
+            err = false;
+            cout << "Error: Operand 2 can not be an immediate value." << endl;
+        }
     }
 }
 
+//This function takes and executes LOAD and STORE functions.
 void dataTrans(uint32_t** r, uint32_t** m, string operation, string op1, string op2, bool& err){
     int regNum;
     uint32_t temp1, temp2;
@@ -372,6 +394,7 @@ void dataTrans(uint32_t** r, uint32_t** m, string operation, string op1, string 
     }
 }
 
+//This takes a branching statement and outputs the corresponding statement to itself and the z flag.
 void branchOp(string operation, string operand, int flagZ){
     if(operation == "BEQ" && flagZ == 1){
         cout << "Branch will be taken to <" << operand << ">" << endl;
@@ -392,6 +415,8 @@ void branchOp(string operation, string operand, int flagZ){
         cout << "There was an error displaying the branching operation." << endl;
     }
 }
+
+//This function takes the operation and opNum, and if it is the incorrect amount prints an error statement and returns corresponding bool.
 bool errorCheck(string operation, string o1, string o2, string o3, int opNum){
     if(opNum > 3 || opNum == 0){
         cout << "Error: incorrect operand ammount" << endl;
@@ -416,6 +441,7 @@ bool errorCheck(string operation, string o1, string o2, string o3, int opNum){
     return false;
 }
 
+//This is a function that finds how many operands are in each statement. 
 void opCount(int* opArr, ifstream& fptr){
     string fpstring, tempStore;
     char c;
