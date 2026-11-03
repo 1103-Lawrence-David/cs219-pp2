@@ -7,7 +7,7 @@ using namespace std;
 
 void cleanUp(string&, string&, string&);
 
-void display(uint32_t**, uint32_t**, string, string, string, string, int, bool);
+void display(uint32_t**, uint32_t**, string, string, string, string, int, bool, bool);
 
 void processInstruction(ifstream&, int&, uint32_t**, uint32_t**, int*, int&);
 
@@ -19,9 +19,9 @@ int findRegNum(string);
 
 void bitwiseOp(uint32_t**, string, string, string, string, bool&);
 
-//dataTrans
+void dataTrans(uint32_t**, uint32_t**, string, string, string, bool&);
 
-//branchOp
+void branchOp(string, string, int);
 
 bool errorCheck(string, string, string, string, int);
 
